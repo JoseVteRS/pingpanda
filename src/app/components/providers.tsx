@@ -11,6 +11,7 @@ export const Providers = ({ children }: PropsWithChildren) => {
         queryCache: new QueryCache({
           onError: (err) => {
             let errorMessage: string
+            console.log("ERR:", err)
             if (err instanceof HTTPException) {
               errorMessage = err.message
             } else if (err instanceof Error) {
