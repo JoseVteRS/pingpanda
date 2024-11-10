@@ -1,23 +1,21 @@
+import { CreateEventCategoryModal } from "@/app/components/create-event-category-modal"
+import { DashboardPage } from "@/app/components/dashboard-page"
+import { PaymentSuccessModal } from "@/app/components/payment-success-modal"
+import { Button } from "@/app/components/ui/button"
 import { db } from "@/db"
 import { createCheckoutSession } from "@/lib/stripe"
 import { currentUser } from "@clerk/nextjs/server"
 import { PlusIcon } from "lucide-react"
 import { redirect } from "next/navigation"
-import { CreateEventCategoryModal } from "../components/create-event-category-modal"
-import { DashboardPage as DashboardPageClient } from "../components/dashboard-page"
-import { PaymentSuccessModal } from "../components/payment-success-modal"
-import { Button } from "../components/ui/button"
 import { DashboardPageContent } from "./dashboard-page-content"
 
-interface DashboardPageProps {
+interface PageProps {
   searchParams: {
     [key: string]: string | string[] | undefined
   }
 }
 
-export default async function DashboardPage({
-  searchParams,
-}: DashboardPageProps) {
+const Page = async ({ searchParams }: PageProps) => {
   const auth = await currentUser()
 
   if (!auth) {
@@ -25,13 +23,11 @@ export default async function DashboardPage({
   }
 
   const user = await db.user.findUnique({
-    where: {
-      externalId: auth.id,
-    },
+    where: { externalId: auth.id },
   })
 
   if (!user) {
-    redirect("/sign-in")
+    return redirect("/welcome")
   }
 
   const intent = searchParams.intent
@@ -41,6 +37,7 @@ export default async function DashboardPage({
       userEmail: user.email,
       userId: user.id,
     })
+
     if (session.url) redirect(session.url)
   }
 
@@ -50,18 +47,21 @@ export default async function DashboardPage({
     <>
       {success ? <PaymentSuccessModal /> : null}
 
-      <DashboardPageClient
+      <DashboardPage
         cta={
           <CreateEventCategoryModal>
-            <Button>
-              <PlusIcon className="size-4 mr-2" /> Add Category
+            <Button className="w-full sm:w-fit">
+              <PlusIcon className="size-4 mr-2" />
+              Add Category
             </Button>
           </CreateEventCategoryModal>
         }
         title="Dashboard"
       >
         <DashboardPageContent />
-      </DashboardPageClient>
+      </DashboardPage>
     </>
   )
 }
+
+export default Page
